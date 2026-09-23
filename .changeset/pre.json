@@ -2,13 +2,13 @@
   "mode": "pre",
   "tag": "preview",
   "changesets": [
-    "account-script",
-    "cart-metafields-skill",
-    "mock-shop-store-catalog",
-    "product-line-attributes",
-    "quiet-cart-aborts",
-    "skills-check-command",
-    "skills-sync-command",
-    "ucp-mcp-proxy"
+    "analytics-destination-tracking-values",
+    "cookie-response-cache-control",
+    "product-store-strict-mode",
+    "reject-proxy-jsonp",
+    "remove-legacy-tracking-cookies",
+    "remove-upstream-server-timing",
+    "ts-plugin-tsserver-resolution",
+    "unexport-react-cart-hooks"
   ]
 }

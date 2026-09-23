@@ -1,5 +1,48 @@
 # @shopify/hydrogen
 
+## 2026.10.0-preview.4
+
+### Minor Changes
+
+- b202925: Add `getTrackingValues()` to analytics destination callback context. Destinations can read current `uniqueToken` and `visitToken` values from Shopify's consent API without accessing its internal globals. Each read requests fallback generation with the tag `hydrogen:<destination name>`; token generation is provided by the consent API when supported. Unavailable values are returned as empty strings, and the getter returns empty strings whenever analytics tracking is not currently allowed, even if a destination retained it and calls it after consent was revoked.
+  
+  ```ts
+  analytics.addDestination({
+    name: "my-destination",
+    setup({ subscribe }) {
+      subscribe("page_viewed", (payload, { getTrackingValues }) => {
+        const { uniqueToken, visitToken } = getTrackingValues();
+        // Forward the event and tokens to your destination.
+      });
+    },
+  });
+  ```
+
+### Patch Changes
+
+- b202925: Apply private, no-store cache directives to any response containing `Set-Cookie`, including application-owned cookies, instead of checking specific Shopify cookie names. Remove conflicting CDN cache directives from these responses.
+- b2c7791: Fix product form store losing its cart subscription after React StrictMode effect replay in development. The store now exposes a `connect()` method that re-subscribes to the cart store, and `ProductProvider` calls it on every effect mount so the subscription survives StrictMode's mount → cleanup → remount cycle.
+- f368205: Reject JSONP `callback` requests before forwarding them through any Shopify proxy.
+- b202925: Stop creating and refreshing the deprecated JavaScript-visible `_shopify_y` and `_shopify_s` cookies from `ShopifyScripts`. Shopify's consent API and Storefront API manage visitor tracking state through the backend cookies.
+  
+  Forward incoming cookies unchanged so Shopify can resolve tracking state and migrate legacy identifiers. Stop converting legacy cookies into tracking headers or inferring tracking state from the presence of specific analytics cookies. The SFAPI proxy continues forwarding explicit token headers directly from the incoming request, without storing tokens in the request context.
+  
+  Expire existing legacy cookies on successful HTTP responses to consent-management requests, after forwarding them upstream. Cleanup covers host-only and parent-domain cookies, including after consent denial or revocation.
+- b202925: Visitor tokens are now read through Shopify's consent API instead of the `Server-Timing` header.
+- 38b8576: Fix `@shopify/hydrogen/ts-plugin` not loading in editors. tsserver resolves `compilerOptions.plugins` with TypeScript's legacy JS resolver, which ignores package `exports`, so the plugin was silently skipped and GraphQL hover docs and completions inside `gql()` documents were missing. The package now ships a `ts-plugin/package.json` that the legacy resolver can find. Type errors for invalid fields were unaffected since those come from `gql()` types, not the plugin.
+- 167a514: **Breaking:** Remove the standalone `CartProvider`, `useCart`, `useCartActions`, and `useCartForm` exports from `@shopify/hydrogen/react`. They dropped custom `CartFragment` types. Use the typed versions from `createCartComponents()` instead:
+  
+  ```ts
+  import { createCartComponents } from "@shopify/hydrogen/react";
+  
+  import type { cartHandlers } from "./cart-handlers";
+  
+  export const { CartProvider, useCart, useCartActions, useCartForm } =
+    createCartComponents<typeof cartHandlers>();
+  ```
+  
+  `useCartAnalytics` is still exported.
+
 ## 2026.10.0-preview.3
 
 ### Minor Changes
